@@ -16,7 +16,7 @@ from pipeline.conf import settings
 from pipeline.exceptions import CompressorError
 from pipeline.utils import to_class, relpath, set_std_streams_blocking
 
-URL_DETECTOR = r"""url\((['"]){0,1}\s*(.*?)["']{0,1}\)"""
+URL_DETECTOR = r"""url\((?P<quote>['"]{0,1})\s*(?P<uri>.*?)(?P=quote)\)"""
 URL_REPLACER = r"""url\(__EMBED__(.+?)(\?\d+)?\)"""
 NON_REWRITABLE_URL = re.compile(r'^(#|http:|https:|data:|//)')
 
@@ -129,8 +129,8 @@ class Compressor(object):
         stylesheets = []
         for path in paths:
             def reconstruct(match):
-                quote = match.group(1) or ''
-                asset_path = match.group(2)
+                quote = match.group('quote') or ''
+                asset_path = match.group('uri')
                 if NON_REWRITABLE_URL.match(asset_path):
                     return "url(%s%s%s)" % (quote, asset_path, quote)
                 asset_url = self.construct_asset_path(asset_path, path,
